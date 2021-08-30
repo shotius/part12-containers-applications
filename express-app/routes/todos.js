@@ -1,15 +1,32 @@
 const express = require("express");
 const { Todo } = require("../mongo");
+const { getAsync, setAsync } = require("../redis");
 const router = express.Router();
 
 /* GET todos listing. */
 router.get("/", async (_, res) => {
-  const todos = await Todo.find({});
-  res.send(todos);
+  try {
+    const todos = await Todo.find({});
+    res.send(todos);
+  } catch (error) {
+    res.status(400).send(error.message);
+  }
 });
 
 /* POST todo to listing. */
 router.post("/", async (req, res) => {
+  try {
+    const statistics = await getAsync("added_todos");
+    const incStat = await setAsync("added_todos", Number(statistics) + 1);
+    if (incStat !== "OK") {
+      res
+        .status(400)
+        .send("was not able to increment number of todos in redis");
+    }
+  } catch (error) {
+    res.status(400).send(error.message);
+  }
+
   const todo = await Todo.create({
     text: req.body.text,
     done: false,
