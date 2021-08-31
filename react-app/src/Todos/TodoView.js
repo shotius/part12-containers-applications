@@ -4,6 +4,8 @@ import axios from '../util/apiClient'
 import List from './List'
 import Form from './Form'
 
+axios.baseurl = process.env.REACT_APP_BACKEND_URL
+
 const TodoView = () => {
   const [todos, setTodos] = useState([])
 
@@ -36,7 +38,7 @@ const TodoView = () => {
 
   return (
     <>
-      <h1>Todos</h1>
+      <h1>TO-DOs</h1>
       <Form createTodo={createTodo} />
       <List todos={todos} deleteTodo={deleteTodo} completeTodo={completeTodo} />
     </>

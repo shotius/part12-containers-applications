@@ -1,0 +1,51 @@
+services:
+  mongo:
+    image: mongo
+    expose: 
+      - 27017
+    environment: 
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+      MONGO_INITDB_DATABASE: the_database
+    volumes: 
+      - ./mongo/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
+      - ./mongo_data:/data/db
+
+  redis:
+    image: redis
+    container_name: cache
+    expose: 
+      - 6379
+    command: ['redis-server', '--appendonly', 'yes']
+    volumes:
+      - ./redis_data:/data
+
+  backend:
+    container_name: todo-back-dev
+    restart: always
+    build: 
+      context: .
+      dockerfile: dev.Dockerfile
+    # ports: 
+      # - 3001:3001
+    expose: 
+      - 3000
+    volumes:
+      - ./:/usr/src/app
+    environment: 
+      - MONGO_URL=mongodb://the_username:the_password@mongo:27017/the_database
+      - REDIS_URL=redis://cache
+      - PORT=3001
+
+  nginx:
+    image: nginx:1.20.1
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - 8888:80
+    container_name: reverse-proxy-back
+
+networks: 
+  default: 
+    external: 
+      name: external-example 
